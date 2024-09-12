@@ -18,7 +18,7 @@ export interface Field {
 	relationName?: string;
 	default: boolean | any;
 	isUpdatedAt: boolean;
-	isReadOnly: string;
+	isReadOnly: boolean;
 	columnName?: string;
 }
 
@@ -30,7 +30,7 @@ export interface Attribute {
 	relationToFields?: any[];
 	relationOnDelete?: string;
 	relationName?: string;
-	isReadOnly: string;
+	isReadOnly: boolean;
 	default?: boolean | any;
 	isGenerated: boolean;
 	isUpdatedAt: boolean;
@@ -44,7 +44,7 @@ export interface Model extends DMMF.Model {
 const handlers = (type, kind) => {
 	return {
 		default: value => {
-			if (kind === 'enum') {
+			if (value && kind === 'enum') {
 				return `@default(${value})`;
 			}
 
@@ -56,7 +56,7 @@ const handlers = (type, kind) => {
 				return `@default(${value})`;
 			}
 
-			if (typeof (value) === 'string') {
+			if (value && typeof (value) === 'string') {
 				return `@default("${value}")`;
 			}
 
@@ -110,7 +110,10 @@ function handleFields(fields: Field[]) {
 		.map(fields => {
 			const {name, kind, type, isRequired, isList, ...attributes} = fields;
 			if (kind === 'scalar') {
-				return `  ${name} ${type}${isRequired ? '' : '?'} ${handleAttributes(attributes, kind, type)}`;
+        if (name === 'fieldsChanged' || name === 'fields_changed'){
+        console.log(`name: ${name} ${isList} ${JSON.stringify(fields)}`)
+      }
+				return `  ${name} ${type}${isList ? '[]' : (isRequired ? '' : '?')} ${handleAttributes(attributes, kind, type)}`;
 			}
 
 			if (kind === 'object') {
